@@ -28,6 +28,9 @@ class TextStyler:
     RESET = "\033[0m"
 
     def wrap_text(text, max_line_length=87, indent=True):
+        """
+        Wraps text to a maximum line length with optional indentation.
+        """
         words = text.split()
         wrapped_text = ""
         current_line = ""
@@ -46,13 +49,13 @@ class TextStyler:
 class CommandArgument:
     def __init__(self, name:str, desc:str="", requierd: bool=True, type:str="str") -> None:
         """
-        compatible types:
-        -str
-        -int
-        -bool
-        -list[str]
-        -list[int]
-        -list[bool]
+        Types:
+        - str
+        - int
+        - bool
+        - list[str]
+        - list[int]
+        - list[bool]
         """
         if not (type in ["str", "int", "bool", "list[str]", "list[int]", "list[bool]"]):
             raise ValueError("Wrong Argument-Type: " + type)
@@ -62,14 +65,16 @@ class CommandArgument:
         self.desc = desc
         
     def __parseStringToList(self, s: str) -> list:
+        """
+        parses a string to a list
+        """
         s = s.strip('() ')
         elements = [elem.strip() for elem in s.split(',')]
         return elements
     
     def parseString(self, s: str) -> list[object]:
         """
-        return[1] == True --> works
-        return[1] == False --> doesn't work
+        returns a list with the parsed argument and a boolean, that indicates if the parsing was successful
         """
         t: str = self.type
         if t == "str":
@@ -107,15 +112,27 @@ class CommandArgument:
         raise Exception("Wrong Argument-Type: " + t)
     
     def isReq(self) -> bool:
+        """
+        returns True if the argument is required
+        """
         return self.requierd
     
     def getType(self) -> str:
+        """
+        returns the type of the argument
+        """
         return self.type
 
     def getName(self) -> str:
+        """
+        returns the name of the argument
+        """
         return self.name
     
     def getDesc(self) -> str:
+        """"
+        returns the description of the argument
+        """
         return self.desc
 
 #Command-Class
@@ -132,6 +149,9 @@ class Command:
                 self.minArgsLength += 1
 
     def getSyntaxStr(self) -> str:
+        """
+        returns a string with the syntax of the command
+        """
         syntaxStr: str = TextStyler.GREEN + "\n---------------------------------------------------------------------------------------\n"
         syntaxStr += "Command Syntax for " + TextStyler.YELLOW + self.name + TextStyler.GREEN + ":\n\n"
         syntaxStr += TextStyler.YELLOW + self.name + TextStyler.GREEN
@@ -153,8 +173,7 @@ class Command:
     
     def parseStringToArguments(self, s: str) -> list[object]:
         """
-        return[1] == True --> works
-        return[1] == False --> doesn't work
+        returns a list with the parsed arguments and a boolean, that indicates if the parsing was successful
         """
         args: list[str] = self.split_string_except_parentheses(s.split(" ", 1)[1])
         if len(args) < self.minArgsLength:
@@ -168,6 +187,9 @@ class Command:
         return [argList, True]
 
     def split_string_except_parentheses(self, s: str) -> list[str]:
+        """
+        splits a string by commas, but ignores commas inside parentheses
+        """
         segments = []
         start_index = 0
         parentheses_count = 0
@@ -183,6 +205,9 @@ class Command:
         return segments
 
     def execute(self, s: str) -> None:
+        """
+        executes the command
+        """
         args: list[object] = self.parseStringToArguments(s)
         if not args[1]:
             print(args[0])
@@ -190,9 +215,15 @@ class Command:
         self.func(args[0])
 
     def getDesc(self) -> str:
+        """
+        returns the description of the command
+        """
         return self.desc
 
     def getName(self) -> str:
+        """
+        returns the name of the command
+        """
         return self.name
 
 #CommandLine-Class --> a virtual Comandline, that you can pass the user Input and it respondes with help, executes functions
@@ -201,15 +232,24 @@ class CommandLine:
         self.commands: list[Command] = []
 
     def addCommand(self, command: Command) -> None:
+        """
+        adds a command to the CommandLine
+        """
         self.commands.append(command)
 
     def commandExists(self, name: str) -> bool:
+        """
+        returns True if the command exists
+        """
         for command in self.commands:
             if command.getName() == name:
                 return True
         return False
     
     def parseInput(self, s: str) -> None:
+        """
+        parses the input and executes the command
+        """
         args: list[str] = s.split()
         if not self.commandExists(args[0]):
             print("Command not found")
