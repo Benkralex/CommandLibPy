@@ -229,7 +229,10 @@ class Command:
         if not args[1]:
             args.append("")
             args.append("")
-            errorMsg: str = errorMessages[args[0]].replace("%name", args[2])
+            #print(args[0])
+            #print(args)
+            errorMsg: str = errorMessages[args[0]]
+            errorMsg = errorMsg.replace("%name", args[2])
             errorMsg = errorMsg.replace("%minArgLen", str(args[3]))
             errorMsg = errorMsg.replace("%value", args[2])
             return print(errorMsg)
