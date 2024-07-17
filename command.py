@@ -83,21 +83,24 @@ class CommandArgument:
             try:
                 return [int(s), True]
             except ValueError:
-                return [("ValueError: " + s + " must be a vaild integer"), False]
+                #return [("ValueError: " + s + " must be a vaild integer"), False]
+                return ["validInt", False, s]
         elif t == "bool":
             if s.lower() in ("true", "t", "1", "yes", "y"):
                 return [True, True]
             elif s.lower() in ("false", "f", "0", "no", "n"):
                 return [False, True]
             else:
-                return [("ValueError: " + s + " must be a vaild boolean"), False]
+                #return [("ValueError: " + s + " must be a vaild boolean"), False]
+                return ["validBool", False, s]
         elif t == "list[str]":
             return [self.__parseStringToList(s), True]
         elif t == "list[int]":
             try:
                 return [([int(x) for x in self.__parseStringToList(s)]), True]
             except ValueError:
-                return [("ValueError: " + s + " must all be valid intergers"), False]
+                #return [("ValueError: " + s + " must all be valid intergers"), False]
+                return ["validInts", False, s]
         elif t == "list[bool]":
             l: list[str] = self.__parseStringToList(s)
             bool_l: list[bool] = []
@@ -107,7 +110,8 @@ class CommandArgument:
                 elif i.lower() in ("false", "f", "0", "no", "n"):
                     bool_l.append(False)
                 else:
-                    return [("ValueError: " + s + " must all be vaild booleans"), False]
+                    #return [("ValueError: " + s + " must all be vaild booleans"), False]
+                    return ["validBools", False, s]
             return [bool_l, True]
         raise Exception("Wrong Argument-Type: " + t)
     
@@ -175,11 +179,24 @@ class Command:
         """
         returns a list with the parsed arguments and a boolean, that indicates if the parsing was successful
         """
-        args: list[str] = self.split_string_except_parentheses(s.split(" ", 1)[1])
-        if len(args) < self.minArgsLength:
-            return [("ValueError: " + self.name + " needs at least" + str(self.minArgsLength) + " arguments"), False]
+        splitedCommand: list[str] = s.split(" ", 1)
+        splitedCommand.append("")
+        argsStr: str = splitedCommand[1]
+        args: list[str] = self.split_string_except_parentheses(argsStr)
+        if argsStr.strip().startswith("help") or argsStr.strip().startswith("info") or argsStr.strip().startswith("?") or argsStr.strip().startswith("h"):
+            return [[self.getSyntaxStr()], False]
+        if (len(args) < self.minArgsLength) or ((len(argsStr.strip()) == 0) and (self.minArgsLength > 0)):
+            if self.minArgsLength == 1:
+                #return [("ValueError: " + self.name + " needs at least 1 argument"), False]
+                return ["needs1arg", False, self.name]
+            #return [("ValueError: " + self.name + " needs at least " + str(self.minArgsLength) + " arguments"), False]
+            return ["needsXargs", False, self.name, self.minArgsLength]
         argList: list[object] = []
-        for i in range(len(args)):
+        if len(args) > len(self.syntax):
+            #return [("ValueError: Too many arguments for " + self.name), False]
+            return ["tooManyArgs", False, self.name]
+        maxArgs: int = len(args)
+        for i in range(maxArgs):
             arg: list[object] = self.syntax[i].parseString(args[i])
             if not arg[1]:
                 return arg
@@ -204,15 +221,19 @@ class Command:
         segments.append(s[start_index:].strip())  # Add the last segment
         return segments
 
-    def execute(self, s: str) -> None:
+    def execute(self, s: str, errorMessages) -> callable:
         """
         executes the command
         """
         args: list[object] = self.parseStringToArguments(s)
         if not args[1]:
-            print(args[0])
-            return
-        self.func(args[0])
+            args.append("")
+            args.append("")
+            errorMsg: str = errorMessages[args[0]].replace("%name", args[2])
+            errorMsg = errorMsg.replace("%minArgLen", str(args[3]))
+            errorMsg = errorMsg.replace("%value", args[2])
+            return print(errorMsg)
+        return self.func(args[0])
 
     def getDesc(self) -> str:
         """
@@ -230,6 +251,7 @@ class Command:
 class CommandLine:
     def __init__(self) -> None:
         self.commands: list[Command] = []
+        self.initErrorMessages()
 
     def addCommand(self, command: Command) -> None:
         """
@@ -252,11 +274,36 @@ class CommandLine:
         """
         args: list[str] = s.split()
         if not self.commandExists(args[0]):
-            print("Command not found")
+            print(self.errorMessages["commandNotFound"])
             return
         for command in self.commands:
             if command.getName() == args[0]:
-                command.execute(s)
+                command.execute(s, self.errorMessages)
+
+    def getHelp(self) -> str:
+        """
+        returns a string with all commands and their descriptions
+        """
+        helpStr: str = TextStyler.GREEN + "\n---------------------------------------------------------------------------------------\n"
+        helpStr += "Available Commands:\n\n"
+        for command in self.commands:
+            helpStr += TextStyler.YELLOW + command.getName() + TextStyler.GREEN + ": " + TextStyler.wrap_text(command.getDesc().replace("\n", "\n")) + "\n"
+        return helpStr + "\n---------------------------------------------------------------------------------------\n" + TextStyler.RESET
+    
+    def initErrorMessages(self) -> None:
+        """
+        initializes the error messages
+        """
+        self.errorMessages: list[str] = {
+            "needs1arg": "ValueError: %name needs at least 1 argument",
+            "needsXargs": "ValueError: %name needs at least %minArgLen arguments",
+            "tooManyArgs": "ValueError: Too many arguments for %name",
+            "validInt": "ValueError: %value must be a vaild integer",
+            "validInts": "ValueError: %value must all be valid intergers",
+            "validBool": "ValueError: %value must be a vaild boolean",
+            "validBools": "ValueError: %value must all be vaild booleans",
+            "commandNotFound": "Command not found"
+        }
     #args in liste
     #welcher command
     #help/info
