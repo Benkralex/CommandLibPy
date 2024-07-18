@@ -157,21 +157,22 @@ class Command:
         returns a string with the syntax of the command
         """
         syntaxStr: str = TextStyler.GREEN + "\n---------------------------------------------------------------------------------------\n"
-        syntaxStr += "Command Syntax for " + TextStyler.YELLOW + self.name + TextStyler.GREEN + ":\n\n"
+        syntaxStr += TextStyler.LIGHT_GREEN + "Command Syntax for " + TextStyler.YELLOW + self.name + TextStyler.LIGHT_GREEN + ":\n\n"
+        syntaxStr += "Description:\n" + TextStyler.GREEN + TextStyler.wrap_text(self.desc.replace("\n", "\n")) + "\n\n"
         syntaxStr += TextStyler.YELLOW + self.name + TextStyler.GREEN
         firstArg: bool = True
         ArgDesc: str = "\n\n"
         for arg in self.syntax:
             if not firstArg:
-                syntaxStr += ","
+                syntaxStr += TextStyler.GREEN + ","
             else:
                 firstArg = False
             if arg.isReq():
-                name: str = TextStyler.RED + " <" + arg.getName() + ">" + TextStyler.GREEN
+                name: str = TextStyler.RED + " <" + arg.getName() + ">"
             elif not arg.isReq():
-                name: str = TextStyler.CYAN + " [" + arg.getName() + "]" + TextStyler.GREEN
+                name: str = TextStyler.CYAN + " [" + arg.getName() + "]"
             syntaxStr += name
-            ArgDesc += name + ":\n" + TextStyler.wrap_text(arg.getDesc().replace("\n", "\n")) + "\n"
+            ArgDesc += name + TextStyler.GREEN + ":\n" + TextStyler.wrap_text(arg.getDesc().replace("\n", "\n")) + "\n"
         syntaxStr += ArgDesc
         return syntaxStr + "\n---------------------------------------------------------------------------------------\n" + TextStyler.RESET
     
@@ -183,8 +184,8 @@ class Command:
         splitedCommand.append("")
         argsStr: str = splitedCommand[1]
         args: list[str] = self.split_string_except_parentheses(argsStr)
-        if argsStr.strip().startswith("help") or argsStr.strip().startswith("info") or argsStr.strip().startswith("?") or argsStr.strip().startswith("h"):
-            return [[self.getSyntaxStr()], False]
+        if argsStr.strip() in ["help", "info", "?"]:
+            return [self.getSyntaxStr(), True, True]
         if (len(args) < self.minArgsLength) or ((len(argsStr.strip()) == 0) and (self.minArgsLength > 0)):
             if self.minArgsLength == 1:
                 #return [("ValueError: " + self.name + " needs at least 1 argument"), False]
@@ -229,13 +230,14 @@ class Command:
         if not args[1]:
             args.append("")
             args.append("")
-            #print(args[0])
-            #print(args)
             errorMsg: str = errorMessages[args[0]]
             errorMsg = errorMsg.replace("%name", args[2])
             errorMsg = errorMsg.replace("%minArgLen", str(args[3]))
             errorMsg = errorMsg.replace("%value", args[2])
             return print(errorMsg)
+        elif len(args) > 2 and args[2]:
+            print(args[0])
+            return
         return self.func(args[0])
 
     def getDesc(self) -> str:
@@ -301,14 +303,13 @@ class CommandLine:
             "needs1arg": "ValueError: '%name' needs at least 1 argument",
             "needsXargs": "ValueError: '%name' needs at least %minArgLen arguments",
             "tooManyArgs": "ValueError: Too many arguments for '%name'",
-            "validInt": "ValueError: '%value' must be a vaild integer",
+            "validInt": "ValueError: '%value' must be a valid integer",
             "validInts": "ValueError: '%value' must all be valid intergers",
-            "validBool": "ValueError: '%value' must be a vaild boolean",
-            "validBools": "ValueError: '%value' must all be vaild booleans",
+            "validBool": "ValueError: '%value' must be a valid boolean",
+            "validBools": "ValueError: '%value' must all be valid booleans",
             "commandNotFound": "Command not found"
         }
-    #args in liste
-    #welcher command
-    #help/info
+
     #autocomplet
+    #float
 

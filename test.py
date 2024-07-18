@@ -17,6 +17,24 @@ if __name__ == '__main__':
         print(args[0] ** 0.5)
     commandLine.addCommand(Command(1, "sqrt", [CommandArgument("x", "The number", True, "int")], "Calculates the square root of a number", sqrt))
 
+    def benjamin(args: list[object]) -> None:
+        print(f'Benjamin is a {args[0] if len(args) == 1 else ""} cool guy')
+
+    commandLine.addCommand(Command(2, "benjamin", [CommandArgument("adjective", "The adjective", False, "str")], "Prints a message about Benjamin", benjamin))
+
+    def greet(args: list[object]) -> None:
+        if len(args) == 1:
+            print(f'Hello, {args[0]}!')
+        else:
+            print(f'Hello, World!')
+    
+    commandLine.addCommand(Command(3, "greet", [CommandArgument("name", "The name", False, "str")], "Greets a person", greet))
+
+    def falko(args: list[object]) -> None:
+        print(f'Falko is a {args[0] if len(args) == 1 else ""} cool guy')
+
+    commandLine.addCommand(Command(4, "falko", [CommandArgument("adjective", "The adjective", False, "str")], "Prints a message about Falko", falko))
+
     while True:
         inp = input("Enter command: ")
         if inp == "exit":
