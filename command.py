@@ -298,13 +298,13 @@ class CommandLine:
         initializes the error messages
         """
         self.errorMessages: list[str] = {
-            "needs1arg": "ValueError: %name needs at least 1 argument",
-            "needsXargs": "ValueError: %name needs at least %minArgLen arguments",
-            "tooManyArgs": "ValueError: Too many arguments for %name",
-            "validInt": "ValueError: %value must be a vaild integer",
-            "validInts": "ValueError: %value must all be valid intergers",
-            "validBool": "ValueError: %value must be a vaild boolean",
-            "validBools": "ValueError: %value must all be vaild booleans",
+            "needs1arg": "ValueError: '%name' needs at least 1 argument",
+            "needsXargs": "ValueError: '%name' needs at least %minArgLen arguments",
+            "tooManyArgs": "ValueError: Too many arguments for '%name'",
+            "validInt": "ValueError: '%value' must be a vaild integer",
+            "validInts": "ValueError: '%value' must all be valid intergers",
+            "validBool": "ValueError: '%value' must be a vaild boolean",
+            "validBools": "ValueError: '%value' must all be vaild booleans",
             "commandNotFound": "Command not found"
         }
     #args in liste
