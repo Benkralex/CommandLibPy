@@ -53,11 +53,13 @@ class CommandArgument:
         - str
         - int
         - bool
+        - float
         - list[str]
         - list[int]
         - list[bool]
+        - list[float]
         """
-        if not (type in ["str", "int", "bool", "list[str]", "list[int]", "list[bool]"]):
+        if not (type in ["str", "int", "bool", "float", "list[str]", "list[int]", "list[bool]", "list[float]"]):
             raise ValueError("Wrong Argument-Type: " + type)
         self.name = name
         self.requierd = requierd
@@ -83,15 +85,18 @@ class CommandArgument:
             try:
                 return [int(s), True]
             except ValueError:
-                #return [("ValueError: " + s + " must be a vaild integer"), False]
                 return ["validInt", False, s]
+        elif t == "float":
+            try:
+                return [float(s), True]
+            except ValueError:
+                return ["validFloat", False, s]
         elif t == "bool":
             if s.lower() in ("true", "t", "1", "yes", "y"):
                 return [True, True]
             elif s.lower() in ("false", "f", "0", "no", "n"):
                 return [False, True]
             else:
-                #return [("ValueError: " + s + " must be a vaild boolean"), False]
                 return ["validBool", False, s]
         elif t == "list[str]":
             return [self.__parseStringToList(s), True]
@@ -99,8 +104,12 @@ class CommandArgument:
             try:
                 return [([int(x) for x in self.__parseStringToList(s)]), True]
             except ValueError:
-                #return [("ValueError: " + s + " must all be valid intergers"), False]
                 return ["validInts", False, s]
+        elif t == "list[float]":
+            try:
+                return [([float(x) for x in self.__parseStringToList(s)]), True]
+            except ValueError:
+                return ["validFloats", False, s]
         elif t == "list[bool]":
             l: list[str] = self.__parseStringToList(s)
             bool_l: list[bool] = []
@@ -110,7 +119,6 @@ class CommandArgument:
                 elif i.lower() in ("false", "f", "0", "no", "n"):
                     bool_l.append(False)
                 else:
-                    #return [("ValueError: " + s + " must all be vaild booleans"), False]
                     return ["validBools", False, s]
             return [bool_l, True]
         raise Exception("Wrong Argument-Type: " + t)
@@ -305,11 +313,12 @@ class CommandLine:
             "tooManyArgs": "ValueError: Too many arguments for '%name'",
             "validInt": "ValueError: '%value' must be a valid integer",
             "validInts": "ValueError: '%value' must all be valid intergers",
+            "validFloat": "ValueError: '%value' must be a valid float",
+            "validFloats": "ValueError: '%value' must all be valid floats",
             "validBool": "ValueError: '%value' must be a valid boolean",
             "validBools": "ValueError: '%value' must all be valid booleans",
             "commandNotFound": "Command not found"
         }
 
     #autocomplet
-    #float
 

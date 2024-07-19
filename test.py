@@ -10,12 +10,12 @@ if __name__ == '__main__':
             print(args[0] + args[1])
         elif len(args) == 3:
             print(args[0] + args[1] + args[2])
-    commandLine.addCommand(Command(0, "add", [CommandArgument("x", "The first number", True, "int"), CommandArgument("y", "The second number", True, "int"), CommandArgument("z", "The third number", False, "int")], "Adds two numbers", add))
+    commandLine.addCommand(Command(0, "add", [CommandArgument("x", "The first number", True, "float"), CommandArgument("y", "The second number", True, "float"), CommandArgument("z", "The third number", False, "float")], "Adds two/three numbers", add))
 
     #sqrt x command
     def sqrt(args: list[object]) -> None:
         print(args[0] ** 0.5)
-    commandLine.addCommand(Command(1, "sqrt", [CommandArgument("x", "The number", True, "int")], "Calculates the square root of a number", sqrt))
+    commandLine.addCommand(Command(1, "sqrt", [CommandArgument("x", "The number", True, "float")], "Calculates the square root of a number", sqrt))
 
     def benjamin(args: list[object]) -> None:
         print(f'Benjamin is a {args[0] if len(args) == 1 else ""} cool guy')
