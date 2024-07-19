@@ -149,7 +149,7 @@ class CommandArgument:
 
 #Command-Class
 class Command:
-    def __init__(self, id: int, name: str, syntax: list[CommandArgument], desc: str, func) -> None:
+    def __init__(self, id: int, name: str, syntax: list[CommandArgument], desc: str, func, aliases: list[str] = []) -> None:
         self.id = id
         self.name = name
         self.syntax = syntax
@@ -159,13 +159,14 @@ class Command:
         for arg in self.syntax:
             if arg.isReq():
                 self.minArgsLength += 1
+        self.aliases = aliases
 
     def getSyntaxStr(self) -> str:
         """
         returns a string with the syntax of the command
         """
         syntaxStr: str = TextStyler.GREEN + "\n---------------------------------------------------------------------------------------\n"
-        syntaxStr += TextStyler.LIGHT_GREEN + "Command Syntax for " + TextStyler.YELLOW + self.name + TextStyler.LIGHT_GREEN + ":\n\n"
+        syntaxStr += TextStyler.LIGHT_GREEN + "Command Syntax for " + TextStyler.YELLOW + self.name + TextStyler.LIGHT_GREEN + self.getAliasesStr() + ":\n\n"
         syntaxStr += "Description:\n" + TextStyler.GREEN + TextStyler.wrap_text(self.desc.replace("\n", "\n")) + "\n\n"
         syntaxStr += TextStyler.YELLOW + self.name + TextStyler.GREEN
         firstArg: bool = True
@@ -196,13 +197,10 @@ class Command:
             return [self.getSyntaxStr(), True, True]
         if (len(args) < self.minArgsLength) or ((len(argsStr.strip()) == 0) and (self.minArgsLength > 0)):
             if self.minArgsLength == 1:
-                #return [("ValueError: " + self.name + " needs at least 1 argument"), False]
                 return ["needs1arg", False, self.name]
-            #return [("ValueError: " + self.name + " needs at least " + str(self.minArgsLength) + " arguments"), False]
             return ["needsXargs", False, self.name, self.minArgsLength]
         argList: list[object] = []
         if len(args) > len(self.syntax):
-            #return [("ValueError: Too many arguments for " + self.name), False]
             return ["tooManyArgs", False, self.name]
         maxArgs: int = len(args)
         for i in range(maxArgs):
@@ -227,7 +225,9 @@ class Command:
             elif char == ',' and parentheses_count == 0:
                 segments.append(s[start_index:i].strip())
                 start_index = i + 1
-        segments.append(s[start_index:].strip())  # Add the last segment
+        segments.append(s[start_index:].strip())
+        if len(segments) == 1 and segments[0] == "":
+            return []
         return segments
 
     def execute(self, s: str, errorMessages) -> callable:
@@ -259,12 +259,30 @@ class Command:
         returns the name of the command
         """
         return self.name
+    
+    def getAliases(self) -> list[str]:
+        """
+        returns the aliases of the command
+        """
+        return self.aliases
+    
+    def getAliasesStr(self) -> str:
+        """
+        returns a string with the aliases of the command
+        """
+        if len(self.aliases) == 0:
+            return ""
+        aliasesStr: str = " ("
+        for alias in self.aliases:
+            aliasesStr += alias + ", "
+        return aliasesStr[:-2] + ")"
 
 #CommandLine-Class --> a virtual Comandline, that you can pass the user Input and it respondes with help, executes functions
 class CommandLine:
     def __init__(self) -> None:
         self.commands: list[Command] = []
         self.initErrorMessages()
+        self.initHelpCommand()
 
     def addCommand(self, command: Command) -> None:
         """
@@ -277,7 +295,7 @@ class CommandLine:
         returns True if the command exists
         """
         for command in self.commands:
-            if command.getName() == name:
+            if (command.getName() == name) or (name in command.getAliases()):
                 return True
         return False
     
@@ -290,7 +308,7 @@ class CommandLine:
             print(self.errorMessages["commandNotFound"])
             return
         for command in self.commands:
-            if command.getName() == args[0]:
+            if (command.getName() == args[0]) or (args[0] in command.getAliases()):
                 command.execute(s, self.errorMessages)
 
     def getHelp(self) -> str:
@@ -300,7 +318,7 @@ class CommandLine:
         helpStr: str = TextStyler.GREEN + "\n---------------------------------------------------------------------------------------\n"
         helpStr += "Available Commands:\n\n"
         for command in self.commands:
-            helpStr += TextStyler.YELLOW + command.getName() + TextStyler.GREEN + ": " + TextStyler.wrap_text(command.getDesc().replace("\n", "\n")) + "\n"
+            helpStr += TextStyler.YELLOW + command.getName() + TextStyler.GREEN + command.getAliasesStr() + ": " + TextStyler.wrap_text(command.getDesc().replace("\n", "\n")) + "\n"
         return helpStr + "\n---------------------------------------------------------------------------------------\n" + TextStyler.RESET
     
     def initErrorMessages(self) -> None:
@@ -319,6 +337,14 @@ class CommandLine:
             "validBools": "ValueError: '%value' must all be valid booleans",
             "commandNotFound": "Command not found"
         }
+
+    def initHelpCommand(self) -> None:
+        """
+        adds the help command
+        """
+        def help(args: list[object]) -> None:
+            print(self.getHelp())
+        self.addCommand(Command(0, "help", [], "Displays all available commands", help, ["info", "?"]))
 
     #autocomplet
 

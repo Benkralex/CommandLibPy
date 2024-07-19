@@ -15,7 +15,7 @@ if __name__ == '__main__':
     #sqrt x command
     def sqrt(args: list[object]) -> None:
         print(args[0] ** 0.5)
-    commandLine.addCommand(Command(1, "sqrt", [CommandArgument("x", "The number", True, "float")], "Calculates the square root of a number", sqrt))
+    commandLine.addCommand(Command(1, "sqrt", [CommandArgument("x", "The number", True, "float")], "Calculates the square root of a number", sqrt, ["wurzel"]))
 
     def benjamin(args: list[object]) -> None:
         print(f'Benjamin is a {args[0] if len(args) == 1 else ""} cool guy')
